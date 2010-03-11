@@ -27,19 +27,32 @@ def main
 end
 
 def banner
-  puts "Plokodelika iPhone App Builder v1.0"
-  puts "Copyright © 2010 Andrey Subbotin <andrey@subbotin.me>"
+  puts "Harukaze v1.0"
+  puts "© 2010 Andrey Subbotin <andrey@subbotin.me>"
+end
+
+def usage 
+  puts ""
+  puts "Usage: harukaze <model> [<rules.harukaze>]"
+  puts ""
+  puts "<model>          = adhoc | appstore"
+  puts "<rules.harukaze> = harukaze config file, default is rules.harukaze"   
 end
 
 def check_args 
   if (ARGV.length == 0)
-    puts "Usage: epl.builder <config-file.yml>"
+    usage
     exit 1
+  elsif (ARGV.length == 1)
+    unless (ARGV[0] == 'adhoc' || ARGV[1] == 'appstore')
+      usage
+      exit 1
+    end
   end
 end
 
 def setup
-  config = YAML.load_file(ARGV[0])
+  config = YAML.load_file(ARGV[1].nil? ? 'rules.harukaze' : ARGV[1])
   config['tmp_dir'] = File.join Dir.tmpdir, "epl.builder.#{$$}"
   config['src_dir'] = File.join config['tmp_dir'], 'src'
   config['build_results_dir'] = File.join config['src_dir'], 'build', 
