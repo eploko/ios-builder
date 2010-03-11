@@ -13,17 +13,16 @@ def main
   check_args
   config = setup
   print_config config
-  # Dir.mkdir config['tmp_dir']
-  # clone_repo(config['repo'], config['src_dir'])
-  # update_submodules(config['src_dir'])
-  # bump_versions(config)
-  # xcodebuild(config['src_dir'], config['project'], config['sdk'], config['target'], config['configuration'])
-  # copy_payload(config)
-  # commit_build(config)
-  # zip_build(config)
+  Dir.mkdir config['tmp_dir']
+  clone_repo(config['repo'], config['src_dir'])
+  update_submodules(config['src_dir'])
+  bump_versions(config)
+  xcodebuild(config['src_dir'], config['project'], config['sdk'], config['target'], config['configuration'])
+  commit_build(config)
+  zip_build(config)
   # copy_build(config)
-  # FileUtils.rm_rf config['tmp_dir']
-  # success "All done!"
+  FileUtils.rm_rf config['tmp_dir'], :verbose => true
+  success "All done!"
 end
 
 def banner
@@ -44,7 +43,7 @@ def check_args
     usage
     exit 1
   elsif (ARGV.length == 1)
-    unless (ARGV[0] == 'adhoc' || ARGV[1] == 'appstore')
+    unless (ARGV[0] == 'adhoc' || ARGV[0] == 'appstore')
       usage
       exit 1
     end
@@ -58,7 +57,9 @@ def setup
   config['src_dir'] = File.join config['tmp_dir'], 'src'
   config['build_results_dir'] = File.join config['src_dir'], 'build', 
                                 "#{config['configuration']}-#{config['build_dir_suffix']}"
+  config['startwd'] = Dir.getwd
   config['payload_target'] = File.join config['tmp_dir'], 'payload'
+  config['mode'] = ARGV[0]
   return config
 end
 
@@ -117,20 +118,6 @@ def xcodebuild(src_dir, project, sdk, target, configuration)
   Dir.chdir src_dir
 end
 
-def copy_payload(config)
-  status "COPYING PAYLOAD CONTENT"
-  Dir.mkdir config['payload_target']
-  if config['mode'] == 'appstore'
-    FileUtils.cp_r Dir.glob(File.join(config['build_results_dir'], '*.app')), 
-                  config['payload_target'], :verbose => true
-  else
-    FileUtils.cp_r Dir.glob(File.join(config['payload'], '*')), 
-                   config['payload_target'], :verbose => true
-    FileUtils.cp_r Dir.glob(File.join(config['build_results_dir'], '*')), 
-                  config['payload_target'], :verbose => true
-  end
-end
-
 def bump_versions(config)
   status "BUMPING VERSIONS"
   rc = exe 'agvtool bump -all'
@@ -175,13 +162,20 @@ end
 
 def zip_build(config)
   status "ZIPPING THE BUILD"
-  Dir.chdir config['payload_target']
+  Dir.chdir config['build_results_dir']
   config['buildbase'] = ("#{config['zip_prefix']}_#{config['current_marketing_version']}_" +
                       "#{config['configuration']}_b#{config['current_version']}_#{config['git_sha']}_" + 
                       Time.now.strftime('%Y%m%d')).gsub('.', '_').gsub('-', '_')
   config['zipname'] = config['buildbase'] + '.zip'
   config['zipname_absolute'] = File.join config['tmp_dir'], config['zipname']
-  exe "zip -r -9 '#{config['zipname_absolute']}' ."
+  exe "zip -r -9 -y '#{config['zipname_absolute']}' *.app"
+  unless config['mode'] == 'appstore'
+    exe "zip -r -9 -y '#{config['zipname_absolute']}' *.app.dSYM"
+  end
+  unless config['payload'].nil?
+    Dir.chdir File.join(config['src_dir'], config['payload'])
+    exe "zip -r -9 -y '#{config['zipname_absolute']}' ."
+  end
   exe "mv '#{config['zipname_absolute']}' ~/Desktop"
 end
 
