@@ -13,17 +13,17 @@ def main
   check_args
   config = setup
   print_config config
-  Dir.mkdir config['tmp_dir']
-  clone_repo(config['repo'], config['src_dir'])
-  update_submodules(config['src_dir'])
-  bump_versions(config)
-  xcodebuild(config['src_dir'], config['project'], config['sdk'], config['target'], config['configuration'])
-  copy_payload(config)
-  commit_build(config)
-  zip_build(config)
-  copy_build(config)
-  FileUtils.rm_rf config['tmp_dir']
-  success "All done!"
+  # Dir.mkdir config['tmp_dir']
+  # clone_repo(config['repo'], config['src_dir'])
+  # update_submodules(config['src_dir'])
+  # bump_versions(config)
+  # xcodebuild(config['src_dir'], config['project'], config['sdk'], config['target'], config['configuration'])
+  # copy_payload(config)
+  # commit_build(config)
+  # zip_build(config)
+  # copy_build(config)
+  # FileUtils.rm_rf config['tmp_dir']
+  # success "All done!"
 end
 
 def banner
@@ -53,6 +53,7 @@ end
 
 def setup
   config = YAML.load_file(ARGV[1].nil? ? 'rules.harukaze' : ARGV[1])
+  config = config['common'].merge(config[ARGV[0]])
   config['tmp_dir'] = File.join Dir.tmpdir, "epl.builder.#{$$}"
   config['src_dir'] = File.join config['tmp_dir'], 'src'
   config['build_results_dir'] = File.join config['src_dir'], 'build', 
