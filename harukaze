@@ -20,7 +20,7 @@ def main
   xcodebuild(config['src_dir'], config['project'], config['sdk'], config['target'], config['configuration'])
   commit_build(config)
   zip_build(config)
-  # copy_build(config)
+  copy_build(config)
   FileUtils.rm_rf config['tmp_dir'], :verbose => true
   success "All done!"
 end
@@ -51,6 +51,11 @@ def check_args
 end
 
 def setup
+  result = Hash.new
+  global_config_filename = File.expand_path('~/.harukaze')
+  if (File.exist?(global_config_filename))
+    result.merge!(YAML.load_file(global_config_filename))
+  end
   config = YAML.load_file(ARGV[1].nil? ? 'rules.harukaze' : ARGV[1])
   config = config['common'].merge(config[ARGV[0]])
   config['tmp_dir'] = File.join Dir.tmpdir, "epl.builder.#{$$}"
@@ -60,7 +65,10 @@ def setup
   config['startwd'] = Dir.getwd
   config['payload_target'] = File.join config['tmp_dir'], 'payload'
   config['mode'] = ARGV[0]
-  return config
+  result.merge!(config)
+  result['builds_folder'] = File.expand_path(result['builds_folder'])
+  result['products_folder'] = File.expand_path(result['products_folder'])
+  result
 end
 
 def print_config(config)
@@ -176,7 +184,7 @@ def zip_build(config)
     Dir.chdir File.join(config['src_dir'], config['payload'])
     exe "zip -r -9 -y '#{config['zipname_absolute']}' ."
   end
-  exe "mv '#{config['zipname_absolute']}' ~/Desktop"
+  FileUtils.mv config['zipname_absolute'], config['products_folder'], :verbose => true
 end
 
 def copy_build(config)
