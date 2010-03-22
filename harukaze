@@ -74,9 +74,7 @@ end
 def print_config(config)
   # Print out settings
   status "CONFIG"
-  config.keys.sort.each do |k|
-    puts "#{k.upcase}: #{config[k]}"
-  end
+  y config
 end
 
 def exe(cmd)
