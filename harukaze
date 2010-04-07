@@ -14,8 +14,6 @@ def main
   config = setup
   print_config config
   Dir.mkdir config['tmp_dir']
-  clone_repo(config['repo'], config['src_dir'])
-  update_submodules(config['src_dir'])
   bump_versions(config)
   xcodebuild(config['src_dir'], config['project'], config['sdk'], config['target'], config['configuration'])
   commit_build(config)
@@ -59,10 +57,10 @@ def setup
   config = YAML.load_file(ARGV[1].nil? ? 'rules.harukaze' : ARGV[1])
   config = config['common'].merge(config[ARGV[0]])
   config['tmp_dir'] = File.join Dir.tmpdir, "epl.builder.#{$$}"
-  config['src_dir'] = File.join config['tmp_dir'], 'src'
+  config['startwd'] = Dir.getwd
+  config['src_dir'] = config['startwd']
   config['build_results_dir'] = File.join config['src_dir'], 'build', 
                                 "#{config['configuration']}-#{config['build_dir_suffix']}"
-  config['startwd'] = Dir.getwd
   config['payload_target'] = File.join config['tmp_dir'], 'payload'
   config['mode'] = ARGV[0]
   result.merge!(config)
@@ -95,27 +93,6 @@ def success(msg)
   print green, bold, 'SUCCESS: ', msg, reset, "\n"
 end
 
-def clone_repo(repo, src_dir)
-  status 'CLONING THE REPO'
-  rc = exe "git clone '#{repo}' '#{src_dir}'"
-  error "Failed to clone the repo!" unless rc
-end
-
-def update_submodules(src_dir)
-  status "UPDATING SUBMODULES @ #{src_dir}"
-  Dir.chdir src_dir
-  rc = exe 'git submodule init'
-  error "Failed to init submodules!" unless rc
-  rc = exe 'git submodule update'
-  error "Failed to update submodules!" unless rc
-  submodules = []
-  `git submodule`.split("\n").each do |sm| sms = sm.split(" "); submodules << sms[1] ; end
-  submodules.each do |submodule|
-    update_submodules File.join(src_dir, submodule)
-  end
-  Dir.chdir src_dir
-end
-
 def xcodebuild(src_dir, project, sdk, target, configuration)
   Dir.chdir src_dir  
   status "BUILDING"
@@ -127,6 +104,7 @@ end
 def bump_versions(config)
   status "BUMPING VERSIONS"
   rc = exe 'agvtool bump -all'
+  
   error "Failed to bump the build number!" unless rc
   rc = exe "agvtool new-marketing-version #{config['marketing_version']}"
   error "Failed to set the marketing version!" unless rc
@@ -150,16 +128,16 @@ def commit_build(config)
               "'#{config['git_tag']}'"
   error "Failed to tag the build!" unless rc
   
-  # pull whatever is there
-  status "PULLING ORIGIN MASTER"
-  rc = exe "git pull origin master"
-  error "Failed to pull origin master!" unless rc
-
-  # push whatever is here
-  status "PUSHING ORIGIN MASTER"
-  rc = exe "git push origin master"
-  error "Failed to push origin master!" unless rc
-
+  # # pull whatever is there
+  # status "PULLING ORIGIN MASTER"
+  # rc = exe "git pull origin master"
+  # error "Failed to pull origin master!" unless rc
+  # 
+  # # push whatever is here
+  # status "PUSHING ORIGIN MASTER"
+  # rc = exe "git push origin master"
+  # error "Failed to push origin master!" unless rc
+  
   # push the tag
   status "PUSHING THE NEW TAG"
   rc = exe "git push origin tag '#{config['git_tag']}'"
