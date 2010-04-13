@@ -152,13 +152,13 @@ def zip_build(config)
                       Time.now.strftime('%Y%m%d')).gsub('.', '_').gsub('-', '_')
   config['zipname'] = config['buildbase'] + '.zip'
   config['zipname_absolute'] = File.join config['tmp_dir'], config['zipname']
-  exe "zip -r -y '#{config['zipname_absolute']}' *.app"
+  exe "zip -r -9 -y '#{config['zipname_absolute']}' *.app"
   unless config['mode'] == 'appstore'
-    exe "zip -r -y '#{config['zipname_absolute']}' *.app.dSYM"
+    exe "zip -r -9 -y '#{config['zipname_absolute']}' *.app.dSYM"
   end
   unless config['payload'].nil?
     Dir.chdir File.join(config['src_dir'], config['payload'])
-    exe "zip -r -y '#{config['zipname_absolute']}' ."
+    exe "zip -r -9 -y '#{config['zipname_absolute']}' ."
   end
   FileUtils.mv config['zipname_absolute'], config['products_folder'], :verbose => true
 end
