@@ -25,6 +25,7 @@ Gem::Specification.new do |s|
      "Rakefile",
      "VERSION",
      "bin/harukaze",
+     "harukaze.gemspec",
      "lib/harukaze.rb"
   ]
   s.homepage = %q{http://github.com/eploko/harukaze}
