@@ -1,6 +1,6 @@
 = harukaze
 
-Description goes here.
+A tool to simplify building of your iPhone app for ad hoc distribution or submitting to the App Store.
 
 == Note on Patches/Pull Requests
  
