@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{harukaze}
-  s.version = "1.2.0"
+  s.version = "1.2.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Andrey Subbotin"]
-  s.date = %q{2010-04-20}
+  s.date = %q{2010-06-14}
   s.default_executable = ["harukaze"]
   s.description = %q{A tool to simplify building of your iPhone app for ad hoc distribution or submitting to the App Store.}
   s.email = %q{andrey@subbotin.me}
