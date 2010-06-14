@@ -103,7 +103,7 @@ end
 
 def bump_versions(config)
   status "BUMPING VERSIONS"
-  rc = exe 'agvtool bump -all'
+  rc = exe "#{config['agvtool']} bump -all"
   
   error "Failed to bump the build number!" unless rc
   rc = exe "agvtool new-marketing-version #{config['marketing_version']}"
