@@ -106,10 +106,10 @@ def bump_versions(config)
   rc = exe "#{config['agvtool']} bump -all"
   
   error "Failed to bump the build number!" unless rc
-  rc = exe "agvtool new-marketing-version #{config['marketing_version']}"
+  rc = exe "#{config['agvtool']} new-marketing-version #{config['marketing_version']}"
   error "Failed to set the marketing version!" unless rc
-  config['current_version'] = `agvtool what-version -terse`.chomp!
-  config['current_marketing_version'] = `agvtool what-marketing-version -terse1`.chomp!
+  config['current_version'] = `#{config['agvtool']} what-version -terse`.chomp!
+  config['current_marketing_version'] = `#{config['agvtool']} what-marketing-version -terse1`.chomp!
 end
 
 def commit_build(config)  
